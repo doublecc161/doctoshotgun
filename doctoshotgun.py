@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import random
 import sys
 import re
 import logging
@@ -610,10 +611,11 @@ class Application:
                         log('')
                         log('💉 %s Congratulations.' % colored('Booked!', 'green', attrs=('bold',)))
                         return 0
-
-                    sleep(1)
-
-                sleep(5)
+                    center_sleep_time = abs(random.gauss(1, 0.3)) % 2
+                    sleep(center_sleep_time)
+                round_wait_time = abs(random.gauss(10, 2)) % 15
+                log(f'Waiting {round_wait_time:.2f}s before next round...\n')
+                sleep(round_wait_time)
             except CityNotFound as e:
                 print('\n%s: City %s not found. Make sure you selected a city from the available countries.' % (colored('Error', 'red'), colored(e, 'yellow')))
                 return 1
