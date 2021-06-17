@@ -41,10 +41,20 @@ except ImportError:
 
 def log(text, *args, **kwargs):
     args = (colored(arg, 'yellow') for arg in args)
+    print_time = True
     if 'color' in kwargs:
         text = colored(text, kwargs.pop('color'))
+        print_time = False
     text = text % tuple(args)
-    print(text, **kwargs)
+
+    if print_time:
+        now = datetime.datetime.now()
+        date_time = now.strftime("%Y-%m-%d, %H:%M:%S")
+        time_str = date_time + " | "
+    else:
+        time_str = ""
+
+    print(time_str, text, **kwargs)
 
 
 class Session(cloudscraper.CloudScraper):
