@@ -4,6 +4,7 @@ import sys
 import re
 import logging
 import tempfile
+import warnings
 from time import sleep
 import json
 from urllib.parse import urlparse
@@ -12,6 +13,7 @@ import argparse
 import getpass
 import unicodedata
 
+import requests
 from dateutil.parser import parse as parse_date
 from dateutil.relativedelta import relativedelta
 
@@ -170,6 +172,26 @@ class MasterPatientPage(JsonPage):
 class CityNotFound(Exception):
     pass
 
+
+def print_request_info(req: requests.Request):
+    print("### Request URL:     ", req.url)
+    print("### Request METHOD:  ", req.method)
+    print("### Request HEADERS:\n", req.headers)
+
+
+def print_response_info(resp: requests.Response):
+    print("### Response URL:    ", resp.url)
+    print("### Response STATUS: ", resp.status_code)
+    print("### Response REASON: ", resp.reason)
+    print("### Response TEXT:\n", resp.text)
+    print("### Response HISTORY:\n", resp.history)
+
+
+def print_request_exception_info(e: requests.RequestException):
+    print_request_info(e.request)
+    print_response_info(e.response)
+
+
 class Doctolib(LoginBrowser):
     # individual properties for each country. To be defined in subclasses
     BASEURL = ""
@@ -240,7 +262,9 @@ class Doctolib(LoginBrowser):
                 self.centers.go(where=city, params={'ref_visit_motive_ids[]': motives})
             except ServerError as e:
                 if e.response.status_code in [503]:
+                    warnings.warn("Server Error 503")
                     return
+                print_request_exception_info(e)
                 raise
             except HTTPNotFound as e:
                 raise CityNotFound(city) from e
@@ -623,6 +647,12 @@ class Application:
                 print('\n%s' % (colored('Connection error. Check your internet connection. Retrying ...', 'red')))
                 print(str(e))
                 sleep(5)
+            except requests.RequestException as e:
+                print_request_exception_info(e)
+                template = "An unexpected exception of type {0} occurred. Arguments:\n{1!r}"
+                message = template.format(type(e).__name__, e.args)
+                print(message)
+                raise e
             except Exception as e:
                 template = "An unexpected exception of type {0} occurred. Arguments:\n{1!r}"
                 message = template.format(type(e).__name__, e.args)
