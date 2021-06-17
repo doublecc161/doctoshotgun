@@ -627,7 +627,7 @@ class Application:
                 template = "An unexpected exception of type {0} occurred. Arguments:\n{1!r}"
                 message = template.format(type(e).__name__, e.args)
                 print(message)
-                return 1
+                raise e
         return 0
 
 
